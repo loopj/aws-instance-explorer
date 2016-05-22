@@ -8,10 +8,6 @@ html, body {
   height: 100%;
 }
 
-.node {
-
-}
-
 .node circle {
   stroke-width: 1.5px;
 }

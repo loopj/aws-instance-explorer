@@ -8,18 +8,20 @@
 <body>
   <div id="chart"></div>
   <script>
-    // Load AWS credentials from localStorage or prompt for them
-    var accessKeyId = localStorage.getItem("accessKeyId") || prompt("Please enter your AWS Access Key ID");
-    var secretAccessKey = localStorage.getItem("secretAccessKey") || prompt("Please enter your AWS Secret Access Key");
+    document.addEventListener("DOMContentLoaded", function(event) {
+      // Load AWS credentials from localStorage or prompt for them
+      var accessKeyId = localStorage.getItem("accessKeyId") || prompt("Please enter your AWS Access Key ID");
+      var secretAccessKey = localStorage.getItem("secretAccessKey") || prompt("Please enter your AWS Secret Access Key");
 
-    // Save AWS credentials to localStorage
-    localStorage.setItem("accessKeyId", accessKeyId);
-    localStorage.setItem("secretAccessKey", secretAccessKey);
+      // Save AWS credentials to localStorage
+      localStorage.setItem("accessKeyId", accessKeyId);
+      localStorage.setItem("secretAccessKey", secretAccessKey);
 
-    // Render an instance chart
-    var chart = new AwsInstanceChart(document.getElementById("chart"));
-    chart.setCredentials(accessKeyId, secretAccessKey);
-    chart.loadData();
+      // Render an instance chart
+      var chart = new AwsInstanceChart(document.getElementById("chart"));
+      chart.setCredentials(accessKeyId, secretAccessKey);
+      chart.loadData();
+    });
   </script>
 </body>
 </html>
