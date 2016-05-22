@@ -1,0 +1,30 @@
+html, body {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+#chart {
+  height: 100%;
+}
+
+.node {
+
+}
+
+.node circle {
+  stroke-width: 1.5px;
+}
+
+.node:hover text {
+  display: inline;
+}
+
+.node text {
+  display: none;
+  font: 10px sans-serif;
+}
+
+.link {
+  stroke: #999;
+}

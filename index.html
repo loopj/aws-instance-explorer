@@ -1,0 +1,19 @@
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="app.css">
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.3.14.min.js"></script>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <script src="app.js"></script>
+</head>
+<body>
+  <div id="chart"></div>
+  <script>
+    var accessKeyId = prompt("Please enter your AWS Access Key ID");
+    var secretAccessKey = prompt("Please enter your AWS Secret Access Key");
+
+    var chart = new AwsInstanceChart(document.getElementById("chart"));
+    chart.setCredentials(accessKeyId, secretAccessKey);
+    chart.loadData();
+  </script>
+</body>
+</html>
