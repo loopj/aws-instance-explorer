@@ -1,52 +1,74 @@
 class AwsInstanceChart {
+  /**
+   * Construct an AwsInstanceChart
+   * @param el the parent element to populate the chart into
+   */
   constructor(el) {
-    var width = el.offsetWidth;
-    var height = el.offsetHeight;
-
     // Configure AWS SDK
     AWS.config.region = 'us-east-1';
 
-    // Node data
-    this.nodes = [];
-
-    // D3 force-directed graph layout
+    // Create a D3 force-directed graph layout
     this.force = d3.layout.force()
-      .size([width, height])
       .linkDistance(30)
       .charge(-200)
       .on("tick", () => { this.tick() });
 
-    // SVG canvas
-    this.svg = d3.select(el).append("svg")
+    // Create the SVG drawing canvas
+    this.svg = d3.select(el).append("svg");
+
+    // Create a color palette for nodes
+    this.fill = d3.scale.category20();
+
+    // Set size and allow window resizing
+    this.resize(el);
+    d3.select(window).on("resize", () => {
+      this.resize(el);
+    });
+  }
+
+  /**
+   * Set the size of the chart based on the size of the parent element
+   * @param el the parent element to populate the chart into
+   */
+  resize(el) {
+    var width = el.offsetWidth;
+    var height = el.offsetHeight;
+
+    // Size SVG canvas
+    this.svg
       .attr("width", width)
       .attr("height", height);
 
-    // Node color palette
-    this.fill = d3.scale.category20();
+    // Size force-directed graph layout
+    this.force
+      .size([width, height]).resume();
   }
 
+  /**
+   * Set which AWS credentials to use to fetch instance data
+   * @param accessKeyId your AWS Access Key ID
+   * @param secretAccessKey your AWS Secret Access Key
+   */
   setCredentials(accessKeyId, secretAccessKey) {
     AWS.config.update({accessKeyId: accessKeyId, secretAccessKey: secretAccessKey});
   }
 
-  update() {
-    var links = d3.layout.tree().links(this.nodes);
+  /**
+   * Update the node data used to generate the chart
+   * @param nodes the chart node data
+   */
+  update(nodes = []) {
+    var links = d3.layout.tree().links(nodes);
 
     // Update nodes and links
     this.force
-      .nodes(this.nodes)
+      .nodes(nodes)
       .links(links)
       .start();
 
-    // Fade in SVG canvas
-    this.svg.style("opacity", 1e-6)
-      .transition()
-        .duration(5000)
-        .style("opacity", 1);
-
     // Draw nodes
     var node = this.svg.selectAll(".node")
-      .data(this.nodes)
+      .data(nodes)
       .enter().append("g")
         .attr("class", "node")
         .call(this.force.drag);
@@ -67,8 +89,17 @@ class AwsInstanceChart {
       .data(links)
       .enter().insert("line", ".node")
         .attr("class", "link");
+
+    // Fade in SVG canvas
+    this.svg.style("opacity", 1e-6)
+      .transition()
+        .duration(5000)
+        .style("opacity", 1);
   }
 
+  /**
+   * Update node positions
+   */
   tick() {
     // Reposition links
     this.svg.selectAll(".link")
@@ -88,51 +119,64 @@ class AwsInstanceChart {
       .attr("y", function(d) { return d.y; });
   }
 
-  // TODO: Clean this up
-  loadData() {
+  /**
+   * Fetch a map of instances, grouped by role
+   */
+  getInstanceMap(cb) {
     // API request to list all EC2 instances
     var request = new AWS.EC2().describeInstances({}, (err, resp) => {
-      if(err) return console.error(err);
+      if(err) return cb(err);
 
+      // Build a map of roles -> instances
       var roles = {};
       for(var reservation of resp.Reservations) {
         for(var instance of reservation.Instances) {
-          // Build a hash of tags (instead of array)
+          // Build a hash of tags (instead of ec2's array format)
           var tags = {}
           for(var tag of instance.Tags) {
             tags[tag.Key] = tag.Value;
           }
 
-          // Add instance to node data
-          if(!roles[tags["Role"]]) {
-            roles[tags["Role"]] = {};
-            roles[tags["Role"]].name = tags["Role"];
-            roles[tags["Role"]].children = [];
-          }
-
-          roles[tags["Role"]].children.push({
+          // Add instance to role, create role if not seen before
+          roles[tags["Role"]] = roles[tags["Role"]] || [];
+          roles[tags["Role"]].push({
             instanceId: instance.InstanceId,
             name: tags["Name"],
             role: tags["Role"]
-          })
+          });
         }
       }
 
-      var data = [];
-      var root = {name: "root", children: []}
-      data.push(root);
-      for(var key in roles) {
-        var role = roles[key];
-        data.push(role);
-        root.children.push(role);
+      // Return instance map
+      cb(null, roles);
+    });
+  }
 
-        for(var inst in role.children) {
-          data.push(role.children[inst]);
-        }
+  /**
+   * Load instance data into the chart
+   */
+  loadData() {
+    this.getInstanceMap((err, instanceMap) => {
+      // Build a flattened tree of nodes from the hash, for d3
+      var nodes = [];
+      var rootNode = {name: "root", children: []};
+      nodes.push(rootNode);
+
+      // Add each role to the tree
+      for(var role in instanceMap) {
+        var roleNode = {name: role, children: []};
+        nodes.push(roleNode);
+        rootNode.children.push(roleNode);
+
+        // Add each instance to the tree
+        instanceMap[role].forEach((instanceNode) => {
+          nodes.push(instanceNode);
+          roleNode.children.push(instanceNode);
+        });
       }
 
-      this.nodes = data;
-      this.update();
+      // Update the chart with the new data
+      this.update(nodes);
     });
   }
 }

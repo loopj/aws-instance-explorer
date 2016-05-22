@@ -1,9 +1,9 @@
 <html>
 <head>
-  <link rel="stylesheet" type="text/css" href="app.css">
   <script src="https://sdk.amazonaws.com/js/aws-sdk-2.3.14.min.js"></script>
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <script src="app.js"></script>
+  <link rel="stylesheet" type="text/css" href="app.css">
 </head>
 <body>
   <div id="chart"></div>
@@ -14,11 +14,11 @@
       var secretAccessKey = localStorage.getItem("secretAccessKey") || prompt("Please enter your AWS Secret Access Key");
 
       // Save AWS credentials to localStorage
-      localStorage.setItem("accessKeyId", accessKeyId);
-      localStorage.setItem("secretAccessKey", secretAccessKey);
+      if(accessKeyId) localStorage.setItem("accessKeyId", accessKeyId);
+      if(secretAccessKey) localStorage.setItem("secretAccessKey", secretAccessKey);
 
       // Render an instance chart
-      var chart = new AwsInstanceChart(document.getElementById("chart"));
+      window.chart = new AwsInstanceChart(document.getElementById("chart"));
       chart.setCredentials(accessKeyId, secretAccessKey);
       chart.loadData();
     });
