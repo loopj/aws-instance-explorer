@@ -9,7 +9,7 @@ class AwsInstanceChart {
 
     // Create a D3 force-directed graph layout
     this.force = d3.layout.force()
-      .charge(-100)
+      .charge(-200)
       .on("tick", () => { this.tick() });
 
     // Create the SVG drawing canvas
@@ -73,21 +73,12 @@ class AwsInstanceChart {
    * @param d the d3 datum
    */
   getNodeRadius(d) {
-    var instanceTypes = {
-      nano: 1,
-      micro: 1,
-      small: 2,
-      medium: 3,
-      large: 4,
-      xlarge: 5,
-      "2xlarge": 10,
-      "4xlarge": 20,
-      "8xlarge": 30,
-      "16xlarge": 40,
-      "32xlarge": 50
-    };
+    var instanceTypes = [
+      "nano", "micro", "small", "medium", "large", "xlarge",
+      "2xlarge", "4xlarge", "8xlarge", "16xlarge", "32xlarge"
+    ];
 
-    return d.type ? instanceTypes[d.type.split(".")[1]] : 1;
+    return d.type ? Math.pow(instanceTypes.indexOf(d.type.split(".")[1]), 1.4) : 1;
   }
 
   /**
