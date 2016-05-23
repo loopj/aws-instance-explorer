@@ -9,8 +9,7 @@ class AwsInstanceChart {
 
     // Create a D3 force-directed graph layout
     this.force = d3.layout.force()
-      .linkDistance(30)
-      .charge(-200)
+      .charge(-100)
       .on("tick", () => { this.tick() });
 
     // Create the SVG drawing canvas
@@ -54,6 +53,44 @@ class AwsInstanceChart {
   }
 
   /**
+   * Get the fill color which should be applied to this node
+   * @param d the d3 datum
+   */
+  getNodeFill(d) {
+    return d.children ? "#ffffff" : this.fill(d.role);
+  }
+
+  /**
+   * Get the stroke color which should be applied to this node
+   * @param d the d3 datum
+   */
+  getNodeStroke(d) {
+    return d3.rgb(this.fill(d.role)).darker(2);
+  }
+
+  /**
+   * Get the radius which should be applied to this node
+   * @param d the d3 datum
+   */
+  getNodeRadius(d) {
+    var instanceTypes = {
+      nano: 1,
+      micro: 1,
+      small: 2,
+      medium: 3,
+      large: 4,
+      xlarge: 5,
+      "2xlarge": 10,
+      "4xlarge": 20,
+      "8xlarge": 30,
+      "16xlarge": 40,
+      "32xlarge": 50
+    };
+
+    return d.type ? instanceTypes[d.type.split(".")[1]] : 1;
+  }
+
+  /**
    * Update the node data used to generate the chart
    * @param nodes the chart node data
    */
@@ -75,9 +112,9 @@ class AwsInstanceChart {
 
     // Draw circles
     var circle = node.append("circle")
-      .attr("r", (d) => { return d.children ? 2 : 6; } )
-      .style("fill", (d) => { return this.fill(d.role); })
-      .style("stroke", (d) => { return d3.rgb(this.fill(d.role)).darker(2); });
+      .attr("r", (d) => { return this.getNodeRadius(d); } )
+      .style("fill", (d) => { return this.getNodeFill(d); })
+      .style("stroke", (d) => { return this.getNodeStroke(d); });
 
     // Draw labels
     var label = node.append("text")
@@ -141,6 +178,7 @@ class AwsInstanceChart {
           roles[tags["Role"]] = roles[tags["Role"]] || [];
           roles[tags["Role"]].push({
             instanceId: instance.InstanceId,
+            type: instance.InstanceType,
             name: tags["Name"],
             role: tags["Role"]
           });
