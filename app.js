@@ -6,6 +6,10 @@ class AwsInstanceChart {
   constructor(el) {
     // Settings object (for easy serialization to localStorage)
     this.settings = {
+      // AWS credentials
+      accessKeyId: null,
+      secretAccessKey: null,
+
       // Instance filtering rules
       filterBy: {
         equals: [],
@@ -34,9 +38,6 @@ class AwsInstanceChart {
       children: []
     };
 
-    // Configure AWS SDK
-    AWS.config.region = 'us-east-1';
-
     // Create a D3 force-directed graph layout
     this.force = d3.layout.force()
       .nodes(this.nodes)
@@ -49,12 +50,12 @@ class AwsInstanceChart {
     // Create a color palette for nodes
     this.fill = d3.scale.category20();
 
-    // Set size and allow window resizing
-    this.resize(el);
-    d3.select(window).on("resize", () => this.resize(el));
-
     // Draw the initial canvas
+    this.resize(el);
     this.update();
+
+    // Allow window resizing
+    d3.select(window).on("resize", () => this.resize(el));
   }
 
   /**
@@ -74,18 +75,6 @@ class AwsInstanceChart {
     // Size force-directed graph layout
     this.force
       .size([this.width, this.height]).resume();
-  }
-
-  /**
-   * Set which AWS credentials to use to fetch instance data
-   * @param accessKeyId your AWS Access Key ID
-   * @param secretAccessKey your AWS Secret Access Key
-   */
-  setCredentials(accessKeyId, secretAccessKey) {
-    this.settings.accessKeyId = accessKeyId;
-    this.settings.secretAccessKey = secretAccessKey;
-
-    AWS.config.update({accessKeyId: accessKeyId, secretAccessKey: secretAccessKey});
   }
 
   /**
@@ -325,6 +314,13 @@ class AwsInstanceChart {
    * Load instance data into the chart
    */
   loadInstanceData() {
+    // Configure AWS SDK
+    AWS.config.region = 'us-east-1';
+    AWS.config.update({
+      accessKeyId: this.settings.accessKeyId,
+      secretAccessKey: this.settings.secretAccessKey
+    });
+
     // API request to list all EC2 instances
     new AWS.EC2().describeInstances({}, (err, resp) => {
       if(err) return;
