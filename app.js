@@ -21,10 +21,10 @@ class AwsInstanceChart {
       },
 
       // Instance grouping rules
-      groupBy: null,
+      groupBy: "instanceType",
 
       // Instance coloring rules
-      colorBy: null
+      colorBy: "instanceType"
     };
 
     // Settings object (for easy serialization to localStorage)
