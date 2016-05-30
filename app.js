@@ -45,6 +45,9 @@ class AwsInstanceChart {
     this.force = d3.layout.force()
       .nodes(this.nodes)
       .charge(-150)
+      .linkDistance(d => {
+        return d.source.nodeType == "group" ? 5 : 30;
+      })
       .on("tick", () => this.tick());
 
     // Create the SVG drawing canvas
