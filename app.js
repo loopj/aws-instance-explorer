@@ -26,11 +26,20 @@ class AwsInstanceChart {
     // Instance node data
     this.instances = [];
 
+    // Construct initial node tree
+    this.nodes = [];
+    this.rootNode = {
+      id: "root",
+      nodeType: "root",
+      children: []
+    };
+
     // Configure AWS SDK
     AWS.config.region = 'us-east-1';
 
     // Create a D3 force-directed graph layout
     this.force = d3.layout.force()
+      .nodes(this.nodes)
       .charge(-150)
       .on("tick", () => this.tick());
 
@@ -43,6 +52,9 @@ class AwsInstanceChart {
     // Set size and allow window resizing
     this.resize(el);
     d3.select(window).on("resize", () => this.resize(el));
+
+    // Draw the initial canvas
+    this.update();
   }
 
   /**
@@ -89,7 +101,10 @@ class AwsInstanceChart {
    * @param d the d3 datum
    */
   getNodeFill(d) {
-    return d.children ? "#ffffff" : this.getInstanceColor(d);
+    if(d.nodeType == "root") return "#000000";
+    if(d.nodeType == "group") return "#ffffff";
+
+    return this.getInstanceColor(d);
   }
 
   /**
@@ -97,7 +112,10 @@ class AwsInstanceChart {
    * @param d the d3 datum
    */
   getNodeStroke(d) {
-    return d.children ? "#555555" : d3.rgb(this.getInstanceColor(d)).darker(0.5);
+    if(d.nodeType == "root") return "#555555";
+    if(d.nodeType == "group") return "rgba(0, 0, 0, 0.3)";
+
+    return d3.rgb(this.getInstanceColor(d)).darker(0.5);
   }
 
   /**
@@ -105,12 +123,15 @@ class AwsInstanceChart {
    * @param d the d3 datum
    */
   getNodeRadius(d) {
+    if(d.nodeType == "root") return 4;
+    if(d.nodeType == "group") return 3;
+
     var instanceTypes = [
       "nano", "micro", "small", "medium", "large", "xlarge",
       "2xlarge", "4xlarge", "8xlarge", "16xlarge", "32xlarge"
     ];
 
-    return d.children ? 3 : Math.pow(instanceTypes.indexOf(d.instanceType.split(".")[1]), 1.4);
+    return Math.pow(instanceTypes.indexOf(d.instanceType.split(".")[1]), 1.4);
   }
 
   /**
@@ -191,12 +212,16 @@ class AwsInstanceChart {
       .enter().append("circle")
         .attr("class", "node")
         .attr("r", d => this.getNodeRadius(d))
-        .style("fill", d => this.getNodeFill(d))
-        .style("stroke", d => this.getNodeStroke(d))
         .call(this.force.drag);
 
+    // Set/update colors on each circle
+    nodeSelection
+      .style("fill", d => this.getNodeFill(d))
+      .style("stroke", d => this.getNodeStroke(d))
+
     // Remove orphaned node DOM elements
-    nodeSelection.exit().remove();
+    nodeSelection
+      .exit().remove();
   }
 
   /**
@@ -204,7 +229,7 @@ class AwsInstanceChart {
    */
   drawLinks(links) {
     var linkSelection = this.svg.selectAll(".link").data(links, (d) => {
-      return `${d.source.id}-${d.target.id}`;
+      return `${d.source.id}:${d.target.id}`;
     });
 
     // Create lines for each link
@@ -213,7 +238,8 @@ class AwsInstanceChart {
         .attr("class", "link");
 
     // Remove orphaned link DOM elements
-    linkSelection.exit().remove();
+    linkSelection
+      .exit().remove();
   }
 
   /**
@@ -221,15 +247,11 @@ class AwsInstanceChart {
    */
   update() {
     var instances = this.instances.filter(d => this.matchesAllFilters(d));
-    var nodes = [];
 
-    // Construct the root node
-    var root = {
-      id: "root",
-      nodeType: "root",
-      children: []
-    };
-    nodes.push(root);
+    // Clear any previous nodes
+    this.nodes.length = 0;
+    this.rootNode.children.length = 0;
+    this.nodes.push(this.rootNode);
 
     // Check if we should group nodes together
     if(this.settings.groupBy) {
@@ -246,13 +268,13 @@ class AwsInstanceChart {
           nodeType: "group",
           children: []
         };
-        nodes.push(group);
-        root.children.push(group);
+        this.nodes.push(group);
+        this.rootNode.children.push(group);
 
         // Add all matching instances to this group node
         instances.forEach(instance => {
           if(this.findKey(this.settings.groupBy, instance) == k) {
-            nodes.push(instance);
+            this.nodes.push(instance);
             group.children.push(instance);
           }
         });
@@ -260,21 +282,20 @@ class AwsInstanceChart {
     } else {
       // No grouping - just add all instances to root node
       instances.forEach(instance => {
-        nodes.push(instance);
-        root.children.push(instance);
+        this.nodes.push(instance);
+        this.rootNode.children.push(instance);
       });
     }
 
     // Create links from the node tree
-    var links = d3.layout.tree().links(nodes);
+    var links = d3.layout.tree().links(this.nodes);
 
     // Draw nodes and links
-    this.drawNodes(nodes);
+    this.drawNodes(this.nodes);
     this.drawLinks(links);
 
     // Update force layout
     this.force
-      .nodes(nodes)
       .links(links)
       .start();
   }
@@ -283,6 +304,10 @@ class AwsInstanceChart {
    * Update node positions
    */
   tick() {
+    // Fix root node to center of view
+    this.rootNode.x = this.width / 2;
+    this.rootNode.y = this.height / 2;
+
     // Reposition nodes
     this.svg.selectAll(".node")
       .attr("cx", d => d.x)
