@@ -19,12 +19,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
   // Template function for instance nodes
   let instanceTemplate = (instance) => {
     var template = `
-      <h2>Instance Info</h2>
+      <h2>Instance info</h2>
       <dl>
         <dt>Instance ID</dt>
         <dd>${instance.instanceId}</dd>
 
-        <dt>Instance Type</dt>
+        <dt>Instance type</dt>
         <dd>${instance.instanceType}</dd>
       </dl>
 
