@@ -8,17 +8,9 @@ html, body {
   height: 100%;
 }
 
-.node circle {
+.node {
   stroke-width: 1px;
-}
-
-.node:hover text {
-  display: inline;
-}
-
-.node text {
-  display: none;
-  font: 10px sans-serif;
+  opacity: 0.9;
 }
 
 .link {

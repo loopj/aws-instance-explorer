@@ -21,6 +21,7 @@
       window.chart = new AwsInstanceChart(document.getElementById("chart"));
       chart.setCredentials(accessKeyId, secretAccessKey);
       chart.settings.colorBy = "tags.Role";
+      chart.settings.groupBy = "tags.Role";
       chart.loadInstanceData();
     });
   </script>
