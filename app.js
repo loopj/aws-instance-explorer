@@ -1,6 +1,6 @@
-class AwsInstanceChart {
+class AwsInstanceExplorer {
   /**
-   * Construct an AwsInstanceChart
+   * Construct an AwsInstanceExplorer
    * @param el the parent element to populate the chart into
    */
   constructor(el) {
