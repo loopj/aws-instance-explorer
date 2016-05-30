@@ -328,6 +328,9 @@ class AwsInstanceChart {
     new AWS.EC2().describeInstances({}, (err, resp) => {
       if(err) return;
 
+      // Clear any previous instance data
+      this.instances.length = 0;
+
       // Go through each instance
       for(var reservation of resp.Reservations) {
         for(var instance of reservation.Instances) {

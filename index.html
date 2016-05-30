@@ -9,19 +9,8 @@
   <div id="chart"></div>
   <script>
     document.addEventListener("DOMContentLoaded", function(event) {
-      // Load AWS credentials from localStorage or prompt for them
-      var accessKeyId = localStorage.getItem("accessKeyId") || prompt("Please enter your AWS Access Key ID");
-      var secretAccessKey = localStorage.getItem("secretAccessKey") || prompt("Please enter your AWS Secret Access Key");
-
-      // Save AWS credentials to localStorage
-      if(accessKeyId) localStorage.setItem("accessKeyId", accessKeyId);
-      if(secretAccessKey) localStorage.setItem("secretAccessKey", secretAccessKey);
-
-      // Render an instance chart
-      var chart = new AwsInstanceChart(document.getElementById("chart"));
+      window.chart = new AwsInstanceChart(document.getElementById("chart"));
       chart.loadInstanceData();
-
-      window.chart = chart;
     });
   </script>
 </body>
