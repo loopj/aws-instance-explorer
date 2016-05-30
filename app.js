@@ -181,9 +181,7 @@ class AwsInstanceChart {
   }
 
   drawNodes(nodes) {
-    var nodeSelection = this.svg.selectAll(".node").data(nodes, (d) => {
-      return `${d.instanceId}`;
-    });
+    var nodeSelection = this.svg.selectAll(".node").data(nodes, d => d.id);
 
     // Create svg group element for each instance
     var nodeGroup = nodeSelection
@@ -208,7 +206,7 @@ class AwsInstanceChart {
 
   drawLinks(links) {
     var linkSelection = this.svg.selectAll(".link").data(links, (d) => {
-      return `${d.source.instanceId}-${d.target.instanceId}`;
+      return `${d.source.id}-${d.target.id}`;
     });
 
     // Create lines for each link
@@ -284,7 +282,7 @@ class AwsInstanceChart {
 
           // Add instance to nodes list
           this.instances.push({
-            instanceId: instance.InstanceId,
+            id: instance.InstanceId,
             type: instance.InstanceType,
             tags: tags
           });
