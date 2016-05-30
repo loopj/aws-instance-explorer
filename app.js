@@ -25,7 +25,7 @@ class AwsInstanceChart {
 
     // Instance node data
     this.instances = [];
-    this.rootNode = {name: "root", group: true};
+    this.rootNode = {name: "root", children: true};
 
     // Configure AWS SDK
     AWS.config.region = 'us-east-1';
@@ -89,7 +89,7 @@ class AwsInstanceChart {
    * @param d the d3 datum
    */
   getNodeFill(d) {
-    return d.group ? "#ffffff" : this.getInstanceColor(d);
+    return d.children ? "#ffffff" : this.getInstanceColor(d);
   }
 
   /**
@@ -97,7 +97,7 @@ class AwsInstanceChart {
    * @param d the d3 datum
    */
   getNodeStroke(d) {
-    return d.group ? "#555555" : d3.rgb(this.getInstanceColor(d)).darker(0.5);
+    return d.children ? "#555555" : d3.rgb(this.getInstanceColor(d)).darker(0.5);
   }
 
   /**
@@ -110,7 +110,7 @@ class AwsInstanceChart {
       "2xlarge", "4xlarge", "8xlarge", "16xlarge", "32xlarge"
     ];
 
-    return d.group ? 3 : Math.pow(instanceTypes.indexOf(d.type.split(".")[1]), 1.4);
+    return d.children ? 3 : Math.pow(instanceTypes.indexOf(d.type.split(".")[1]), 1.4);
   }
 
   /**
