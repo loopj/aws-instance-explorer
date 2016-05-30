@@ -3,11 +3,58 @@ html, body {
   padding: 0;
   margin: 0;
   font-family: 'BlinkMacSystemFont', -apple-system, "Helvetica Neue", "Lucida Grande";
+  font-size: 14px;
+  color: #26262e;
+}
+
+h2 {
+  margin: 1.5rem 0 0.5rem 0;
+  padding: 0;
+  border-bottom: 1px solid rgba(0,0,0,.05);
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 2rem;
+}
+
+h2:first-of-type {
+  margin-top: 0;
+}
+
+dl {
+  margin: 0;
+  padding: 0;
+}
+
+dt {
+  color: #6c6c72;
+  float: left;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 0.5rem 0 0;
+  text-transform: lowercase;
+  font-variant: small-caps;
+}
+
+dd {
+  padding: 0 0 0 0.5rem;
+  text-align: right;
+}
+
+input[type=text], input[type=password] {
+  display: block;
+  width: 100%;
+  font-size: 1rem;
+  line-height: 1.8rem;
+  padding: 2px 5px;
 }
 
 #page {
   display: flex;
   flex-direction: row;
+  height: 100%;
+  overflow: hidden;
 }
 
 #chart {
@@ -16,19 +63,22 @@ html, body {
 }
 
 #sidebar {
+  background-color: #ebebec;
   flex: 1;
-  border-left: 1px solid red;
   display: flex;
   flex-direction: column;
+  border-left: 1px solid #ddddde;
 }
 
 #settings {
-  flex: 2;
+  flex: 1;
+  border-bottom: 1px solid #ddddde;
+  padding: 1rem;
 }
 
 #instance-info {
-  border-top: 1px solid blue;
   flex: 1;
+  padding: 1rem;
 }
 
 .node {

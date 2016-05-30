@@ -35,6 +35,7 @@ class AwsInstanceChart {
 
     // Construct initial node tree
     this.nodes = [];
+    this.links = [];
     this.rootNode = {
       id: "root",
       nodeType: "root",
@@ -118,7 +119,7 @@ class AwsInstanceChart {
     if(d.nodeType == "root") return 4;
     if(d.nodeType == "group") return 3;
 
-    var instanceTypes = [
+    let instanceTypes = [
       "nano", "micro", "small", "medium", "large", "xlarge",
       "2xlarge", "4xlarge", "8xlarge", "16xlarge", "32xlarge"
     ];
@@ -146,9 +147,9 @@ class AwsInstanceChart {
    * Given a set of filter rules, check if they all match using the given test function
    */
   matchesFilter(rules, obj, testFunc) {
-    for(var i = 0; i < rules.length; i++) {
-      var [key, expected] = rules[i];
-      var actual = this.findKey(key, obj);
+    for(let i = 0; i < rules.length; i++) {
+      let [key, expected] = rules[i];
+      let actual = this.findKey(key, obj);
 
       if(!testFunc(actual, expected)) return false;
     }
@@ -181,12 +182,12 @@ class AwsInstanceChart {
     }
 
     // Apply "set" rules
-    for(var i = 0; i < this.settings.filterBy.set.length; i++) {
+    for(let i = 0; i < this.settings.filterBy.set.length; i++) {
       if(this.findKey(this.settings.filterBy.set[i], node) === undefined) return false;
     }
 
     // Apply "notSet" rules
-    for(var i = 0; i < this.settings.filterBy.notSet.length; i++) {
+    for(let i = 0; i < this.settings.filterBy.notSet.length; i++) {
       if(this.findKey(this.settings.filterBy.notSet[i], node) !== undefined) return false;
     }
 
@@ -196,8 +197,8 @@ class AwsInstanceChart {
   /**
    * Draw nodes after updating the data-set or filtering
    */
-  drawNodes(nodes) {
-    var nodeSelection = this.svg.selectAll(".node").data(nodes, d => d.id);
+  drawNodes() {
+    let nodeSelection = this.svg.selectAll(".node").data(this.nodes, d => d.id);
 
     // Create circle for each AWS instance - add to svg group
     nodeSelection
@@ -221,8 +222,8 @@ class AwsInstanceChart {
   /**
    * Draw node links after updating the data-set or filtering
    */
-  drawLinks(links) {
-    var linkSelection = this.svg.selectAll(".link").data(links, (d) => {
+  drawLinks() {
+    let linkSelection = this.svg.selectAll(".link").data(this.links, (d) => {
       return `${d.source.id}:${d.target.id}`;
     });
 
@@ -240,7 +241,7 @@ class AwsInstanceChart {
    * Update the node data used to generate the chart
    */
   update() {
-    var instances = this.instances.filter(d => this.matchesAllFilters(d));
+    let instances = this.instances.filter(d => this.matchesAllFilters(d));
 
     // Clear any previous nodes
     this.nodes.length = 0;
@@ -248,17 +249,16 @@ class AwsInstanceChart {
     this.nodes.push(this.rootNode);
 
     // Check if we should group nodes together
-    // TODO: Allow multi-depth grouping
     if(this.settings.groupBy) {
       // Get a unique set of values for this group key
-      var groupKeys = new Set();
+      let groupKeys = new Set();
       instances.forEach(instance => {
         groupKeys.add(this.findKey(this.settings.groupBy, instance));
       });
 
       // Construct each group node
       groupKeys.forEach(k => {
-        var group = {
+        let group = {
           id: k,
           nodeType: "group",
           children: []
@@ -283,15 +283,15 @@ class AwsInstanceChart {
     }
 
     // Create links from the node tree
-    var links = d3.layout.tree().links(this.nodes);
+    this.links = d3.layout.tree().links(this.nodes);
 
     // Draw nodes and links
-    this.drawNodes(this.nodes);
-    this.drawLinks(links);
+    this.drawNodes();
+    this.drawLinks();
 
     // Update force layout
     this.force
-      .links(links)
+      .links(this.links)
       .start();
   }
 
@@ -335,11 +335,11 @@ class AwsInstanceChart {
       this.instances.length = 0;
 
       // Go through each instance
-      for(var reservation of resp.Reservations) {
-        for(var instance of reservation.Instances) {
+      for(let reservation of resp.Reservations) {
+        for(let instance of reservation.Instances) {
           // Build a hash of tags (instead of ec2's array format)
-          var tags = {}
-          for(var tag of instance.Tags) {
+          let tags = {}
+          for(let tag of instance.Tags) {
             tags[tag.Key] = tag.Value;
           }
 
@@ -371,5 +371,40 @@ class AwsInstanceChart {
    */
   getSettings() {
     return JSON.parse(localStorage.getItem(this.SETTINGS_KEY));
+  }
+
+  /**
+   * Setters
+   */
+  set accessKeyId(value) {
+    if(!value || value == this.settings.accessKeyId) return;
+
+    this.settings.accessKeyId = value;
+    chart.saveSettings();
+    chart.loadInstanceData();
+  }
+
+  set secretAccessKey(value) {
+    if(!value || value == this.settings.secretAccessKey) return;
+
+    this.settings.secretAccessKey = value;
+    chart.saveSettings();
+    chart.loadInstanceData();
+  }
+
+  set colorBy(value) {
+    if(!value || value == this.settings.colorBy) return;
+
+    this.settings.colorBy = value;
+    chart.saveSettings();
+    chart.drawNodes();
+  }
+
+  set groupBy(value) {
+    if(!value || value == this.settings.groupBy) return;
+
+    this.settings.groupBy = value;
+    chart.update();
+    chart.saveSettings();
   }
 }
