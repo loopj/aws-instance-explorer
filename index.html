@@ -2,14 +2,45 @@
 <head>
   <script src="https://sdk.amazonaws.com/js/aws-sdk-2.3.14.min.js"></script>
   <script src="https://d3js.org/d3.v3.min.js"></script>
-  <script src="app.js"></script>
+  <script src="aws-instance-chart.js"></script>
   <link rel="stylesheet" type="text/css" href="app.css">
 </head>
 <body>
-  <div id="chart"></div>
+  <div id="page">
+    <div id="chart"></div>
+    <div id="sidebar">
+      <div id="settings">
+        Settings
+      </div>
+
+      <div id="instance-info"></div>
+    </div>
+  </div>
   <script>
     document.addEventListener("DOMContentLoaded", function(event) {
       window.chart = new AwsInstanceExplorer(document.getElementById("chart"));
+
+      var instanceInfoTemplate = (instance) => {
+        return `
+        <h2>Instance Info</h2>
+        <dl>
+          <dt>Instance ID</dt>
+          <dd>${instance.instanceId}</dd>
+
+          <dt>Instance Type</dt>
+          <dd>${instance.instanceType}</dd>
+        </dl>
+
+        <h2>Instance Tags</h2>
+        <dl>
+        </dl>
+        `
+      };
+
+      chart.handleMouseOver = (d) => {
+        document.getElementById("instance-info").innerHTML = instanceInfoTemplate(d);
+      };
+
       chart.loadInstanceData();
     });
   </script>

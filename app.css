@@ -2,10 +2,33 @@ html, body {
   height: 100%;
   padding: 0;
   margin: 0;
+  font-family: 'BlinkMacSystemFont', -apple-system, "Helvetica Neue", "Lucida Grande";
+}
+
+#page {
+  display: flex;
+  flex-direction: row;
 }
 
 #chart {
+  flex: 3;
   height: 100%;
+}
+
+#sidebar {
+  flex: 1;
+  border-left: 1px solid red;
+  display: flex;
+  flex-direction: column;
+}
+
+#settings {
+  flex: 2;
+}
+
+#instance-info {
+  border-top: 1px solid blue;
+  flex: 1;
 }
 
 .node {

@@ -1,6 +1,6 @@
-class AwsInstanceExplorer {
+class AwsInstanceChart {
   /**
-   * Construct an AwsInstanceExplorer
+   * Construct an AwsInstanceChart
    * @param el the parent element to populate the chart into
    */
   constructor(el) {
@@ -51,7 +51,9 @@ class AwsInstanceExplorer {
       .on("tick", () => this.tick());
 
     // Create the SVG drawing canvas
-    this.svg = d3.select(el).append("svg");
+    this.svg = d3.select(el).append("svg")
+      .attr("width", "100%")
+      .attr("height", "100%");
 
     // Create a color palette for nodes
     this.fill = d3.scale.category20();
@@ -72,11 +74,6 @@ class AwsInstanceExplorer {
     // Save new size
     this.width = el.offsetWidth;
     this.height = el.offsetHeight;
-
-    // Size SVG canvas
-    this.svg
-      .attr("width", this.width)
-      .attr("height", this.height);
 
     // Size force-directed graph layout
     this.force
@@ -207,6 +204,8 @@ class AwsInstanceExplorer {
       .enter().append("circle")
         .attr("class", "node")
         .attr("r", d => this.getNodeRadius(d))
+        .on("mouseover", d => { if(this.handleMouseOver) this.handleMouseOver(d); })
+        .on("mouseout", d => { if(this.handleMouseOut) this.handleMouseOut(d); })
         .call(this.force.drag);
 
     // Set/update colors on each circle
@@ -249,6 +248,7 @@ class AwsInstanceExplorer {
     this.nodes.push(this.rootNode);
 
     // Check if we should group nodes together
+    // TODO: Allow multi-depth grouping
     if(this.settings.groupBy) {
       // Get a unique set of values for this group key
       var groupKeys = new Set();
