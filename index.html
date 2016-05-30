@@ -1,27 +1,33 @@
 <html>
 <head>
+  <meta charset="utf-8">
+
+  <link rel="stylesheet" type="text/css" href="app.css">
+
   <script src="https://sdk.amazonaws.com/js/aws-sdk-2.3.14.min.js"></script>
   <script src="https://d3js.org/d3.v3.min.js"></script>
+  <script src="aws-instance-chart.js"></script>
   <script src="app.js"></script>
-  <link rel="stylesheet" type="text/css" href="app.css">
 </head>
 <body>
-  <div id="chart"></div>
-  <script>
-    document.addEventListener("DOMContentLoaded", function(event) {
-      // Load AWS credentials from localStorage or prompt for them
-      var accessKeyId = localStorage.getItem("accessKeyId") || prompt("Please enter your AWS Access Key ID");
-      var secretAccessKey = localStorage.getItem("secretAccessKey") || prompt("Please enter your AWS Secret Access Key");
+  <div id="page">
+    <div id="chart"></div>
 
-      // Save AWS credentials to localStorage
-      if(accessKeyId) localStorage.setItem("accessKeyId", accessKeyId);
-      if(secretAccessKey) localStorage.setItem("secretAccessKey", secretAccessKey);
+    <div id="sidebar">
+      <div id="settings">
+        <h2>Credentials</h2>
+        <input type="text" name="accessKeyId" placeholder="AWS Access Key ID">
+        <input type="password" name="secretAccessKey" placeholder="AWS Secret Access Key">
 
-      // Render an instance chart
-      window.chart = new AwsInstanceChart(document.getElementById("chart"));
-      chart.setCredentials(accessKeyId, secretAccessKey);
-      chart.loadData();
-    });
-  </script>
+        <h2>Group by…</h2>
+        <input type="text" name="groupBy" placeholder="eg: instanceType">
+
+        <h2>Color by…</h2>
+        <input type="text" name="colorBy" placeholder="eg: instanceType">
+      </div>
+
+      <div id="instance-info"></div>
+    </div>
+  </div>
 </body>
 </html>
