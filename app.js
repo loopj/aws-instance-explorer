@@ -51,17 +51,17 @@ class AwsInstanceChart {
    * @param el the parent element to populate the chart into
    */
   resize(el) {
-    var width = el.offsetWidth;
-    var height = el.offsetHeight;
+    this.width = el.offsetWidth;
+    this.height = el.offsetHeight;
 
     // Size SVG canvas
     this.svg
-      .attr("width", width)
-      .attr("height", height);
+      .attr("width", this.width)
+      .attr("height", this.height);
 
     // Size force-directed graph layout
     this.force
-      .size([width, height]).resume();
+      .size([this.width, this.height]).resume();
   }
 
   /**
@@ -245,22 +245,25 @@ class AwsInstanceChart {
    * Update node positions
    */
   tick() {
+    this.rootNode.x = this.width / 2;
+    this.rootNode.y = this.height / 2;
+
     // Reposition links
     this.svg.selectAll(".link")
-      .attr("x1", function(d) { return d.source.x; })
-      .attr("y1", function(d) { return d.source.y; })
-      .attr("x2", function(d) { return d.target.x; })
-      .attr("y2", function(d) { return d.target.y; });
+      .attr("x1", d => d.source.x)
+      .attr("y1", d => d.source.y)
+      .attr("x2", d => d.target.x)
+      .attr("y2", d => d.target.y);
 
     // Reposition nodes
     this.svg.selectAll(".node circle")
-      .attr("cx", function(d) { return d.x; })
-      .attr("cy", function(d) { return d.y; });
+      .attr("cx", d => d.x)
+      .attr("cy", d => d.y);
 
     // Reposition labels
     this.svg.selectAll(".node text")
-      .attr("x", function(d) { return d.x + 10; })
-      .attr("y", function(d) { return d.y; });
+      .attr("x", d => d.x + this.getNodeRadius(d) + 4)
+      .attr("y", d => d.y);
   }
 
   /**
