@@ -18,12 +18,10 @@
       if(secretAccessKey) localStorage.setItem("secretAccessKey", secretAccessKey);
 
       // Render an instance chart
-      window.chart = new AwsInstanceChart(document.getElementById("chart"));
-      chart.settings.accessKeyId = accessKeyId;
-      chart.settings.secretAccessKey = secretAccessKey;
-      chart.settings.colorBy = "tags.Role";
-      chart.settings.groupBy = "tags.Role";
+      var chart = new AwsInstanceChart(document.getElementById("chart"));
       chart.loadInstanceData();
+
+      window.chart = chart;
     });
   </script>
 </body>

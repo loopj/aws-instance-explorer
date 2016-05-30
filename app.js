@@ -4,8 +4,8 @@ class AwsInstanceChart {
    * @param el the parent element to populate the chart into
    */
   constructor(el) {
-    // Settings object (for easy serialization to localStorage)
-    this.settings = {
+    this.SETTINGS_KEY = "aws-instance-explorer";
+    this.DEFAULT_SETTINGS = {
       // AWS credentials
       accessKeyId: null,
       secretAccessKey: null,
@@ -26,6 +26,9 @@ class AwsInstanceChart {
       // Instance coloring rules
       colorBy: null
     };
+
+    // Settings object (for easy serialization to localStorage)
+    this.settings = this.getSettings() || this.DEFAULT_SETTINGS;
 
     // Instance node data
     this.instances = [];
@@ -348,5 +351,19 @@ class AwsInstanceChart {
       // Update the chart with the new data
       this.update();
     });
+  }
+
+  /**
+   * Save the current settings (including credentials) to local storage
+   */
+  saveSettings() {
+    localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(this.settings));
+  }
+
+  /**
+   * Fetch saved settings (if any) from local storage
+   */
+  getSettings() {
+    return JSON.parse(localStorage.getItem(this.SETTINGS_KEY));
   }
 }
