@@ -20,7 +20,8 @@
       // Render an instance chart
       window.chart = new AwsInstanceChart(document.getElementById("chart"));
       chart.setCredentials(accessKeyId, secretAccessKey);
-      chart.loadData();
+      chart.settings.colorBy = "tags.Role";
+      chart.loadInstanceData();
     });
   </script>
 </body>

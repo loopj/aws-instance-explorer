@@ -4,12 +4,28 @@ class AwsInstanceChart {
    * @param el the parent element to populate the chart into
    */
   constructor(el) {
-    // Instance node data
-    this.nodes = [];
+    // Settings object (for easy serialization to localStorage)
+    this.settings = {
+      // Instance filtering rules
+      filterBy: {
+        equals: [],
+        notEquals: [],
+        contains: [],
+        notContains: [],
+        set: [],
+        notSet: []
+      },
 
-    // Root node
+      // Instance grouping rules
+      groupBy: [],
+
+      // Instance coloring rules
+      colorBy: null
+    };
+
+    // Instance node data
+    this.instances = [];
     this.rootNode = {name: "root", group: true};
-    this.nodes.push(this.rootNode);
 
     // Configure AWS SDK
     AWS.config.region = 'us-east-1';
@@ -28,25 +44,6 @@ class AwsInstanceChart {
     // Set size and allow window resizing
     this.resize(el);
     d3.select(window).on("resize", () => this.resize(el));
-
-    // Instance filtering rules, for example:
-    //    filterRules.equals.push(["tags.Role", "db"])
-    //    filterRules.equals.push(["type", "r3.2xlarge"])
-    //    filterRules.contains.push(["type", "[^x]large"])
-    //    filterRules.set.push("tags.James")
-    this.filters = {
-      equals: [],
-      notEquals: [],
-      contains: [],
-      notContains: [],
-      set: [],
-      notSet: []
-    };
-
-    // TODO: Instance grouping rules, for example:
-    //    groupingRules.push("tags.Role")
-    //    groupingRules.push("type")
-    this.groups = [];
   }
 
   /**
@@ -73,7 +70,18 @@ class AwsInstanceChart {
    * @param secretAccessKey your AWS Secret Access Key
    */
   setCredentials(accessKeyId, secretAccessKey) {
+    this.settings.accessKeyId = accessKeyId;
+    this.settings.secretAccessKey = secretAccessKey;
+
     AWS.config.update({accessKeyId: accessKeyId, secretAccessKey: secretAccessKey});
+  }
+
+  /**
+   * Get the node color which should be applied to this instance node
+   * @param d the d3 datum
+   */
+  getInstanceColor(d) {
+    return this.fill(this.findKey(this.settings.colorBy, d));
   }
 
   /**
@@ -81,7 +89,7 @@ class AwsInstanceChart {
    * @param d the d3 datum
    */
   getNodeFill(d) {
-    return d.group ? "#ffffff" : this.fill(d.tags.Role);
+    return d.group ? "#ffffff" : this.getInstanceColor(d);
   }
 
   /**
@@ -89,7 +97,7 @@ class AwsInstanceChart {
    * @param d the d3 datum
    */
   getNodeStroke(d) {
-    return d.group ? "#555555" : d3.rgb(this.fill(d.tags.Role)).darker(0.5);
+    return d.group ? "#555555" : d3.rgb(this.getInstanceColor(d)).darker(0.5);
   }
 
   /**
@@ -139,52 +147,43 @@ class AwsInstanceChart {
    * Check if the given node matches all active filters
    */
   matchesAllFilters(node) {
-    // Never filter the root node
-    if(node == this.rootNode) return true;
-
     // Apply "equals" rules
-    if(!this.matchesFilter(this.filters.equals, node, (a, b) => a == b)) {
+    if(!this.matchesFilter(this.settings.filterBy.equals, node, (a, b) => a == b)) {
       return false;
     }
 
     // Apply "notEquals" rules
-    if(!this.matchesFilter(this.filters.notEquals, node, (a, b) => a != b)) {
+    if(!this.matchesFilter(this.settings.filterBy.notEquals, node, (a, b) => a != b)) {
       return false;
     }
 
     // Apply "contains" rules
-    if(!this.matchesFilter(this.filters.contains, node, (a, b) => !!a.match(new RegExp(b)))) {
+    if(!this.matchesFilter(this.settings.filterBy.contains, node, (a, b) => !!a.match(new RegExp(b)))) {
       return false;
     }
 
     // Apply "notContains" rules
-    if(!this.matchesFilter(this.filters.notContains, node, (a, b) => !a.match(new RegExp(b)))) {
+    if(!this.matchesFilter(this.settings.filterBy.notContains, node, (a, b) => !a.match(new RegExp(b)))) {
       return false;
     }
 
     // Apply "set" rules
-    for(var i = 0; i < this.filters.set.length; i++) {
-      if(this.findKey(this.filters.set[i], node) === undefined) return false;
+    for(var i = 0; i < this.settings.filterBy.set.length; i++) {
+      if(this.findKey(this.settings.filterBy.set[i], node) === undefined) return false;
     }
 
     // Apply "notSet" rules
-    for(var i = 0; i < this.filters.notSet.length; i++) {
-      if(this.findKey(this.filters.notSet[i], node) !== undefined) return false;
+    for(var i = 0; i < this.settings.filterBy.notSet.length; i++) {
+      if(this.findKey(this.settings.filterBy.notSet[i], node) !== undefined) return false;
     }
 
     return true;
   }
 
-  getNodes() {
-    return this.nodes.filter(d => this.matchesAllFilters(d));
-  }
-
-  getLinks(nodes) {
-    return nodes.map(d => ({source: this.rootNode, target: d}));
-  }
-
   drawNodes(nodes) {
-    var nodeSelection = this.svg.selectAll(".node").data(nodes, d => d.instanceId);
+    var nodeSelection = this.svg.selectAll(".node").data(nodes, (d) => {
+      return `${d.instanceId}`;
+    });
 
     // Create svg group element for each instance
     var nodeGroup = nodeSelection
@@ -203,7 +202,7 @@ class AwsInstanceChart {
       .attr("dy", ".35em")
       .text(d => d.tags ? d.tags.Name : d.name);
 
-    // Remove orphaned dom elements
+    // Remove orphaned node DOM elements
     nodeSelection.exit().remove();
   }
 
@@ -217,7 +216,7 @@ class AwsInstanceChart {
       .enter().insert("line", ".node")
         .attr("class", "link");
 
-    // Remove orphaned dom elements
+    // Remove orphaned link DOM elements
     linkSelection.exit().remove();
   }
 
@@ -225,8 +224,13 @@ class AwsInstanceChart {
    * Update the node data used to generate the chart
    */
   update() {
-    var nodes = this.getNodes();
-    var links = this.getLinks(nodes);
+    // TODO: Build grouping hierachy here
+    // - build nodes from filtered instance list, with children objects
+    // - use d3.layout.tree to get tree.links(nodes)
+    var nodes = this.instances.filter(d => this.matchesAllFilters(d));
+    nodes.push(this.rootNode);
+
+    var links = nodes.map(d => ({source: this.rootNode, target: d}));
 
     // Draw nodes and links
     this.drawNodes(nodes);
@@ -264,7 +268,7 @@ class AwsInstanceChart {
   /**
    * Load instance data into the chart
    */
-  loadData() {
+  loadInstanceData() {
     // API request to list all EC2 instances
     new AWS.EC2().describeInstances({}, (err, resp) => {
       if(err) return;
@@ -279,7 +283,7 @@ class AwsInstanceChart {
           }
 
           // Add instance to nodes list
-          this.nodes.push({
+          this.instances.push({
             instanceId: instance.InstanceId,
             type: instance.InstanceType,
             tags: tags
