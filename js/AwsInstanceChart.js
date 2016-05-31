@@ -362,7 +362,7 @@ class AwsInstanceChart {
             this.update();
 
             // Let caller know we're done
-            if(callback) callback(this.instances);
+            if(callback) callback(null, this.instances);
         });
     }
 
