@@ -1,6 +1,6 @@
-document.addEventListener("DOMContentLoaded", function(event) {
+document.addEventListener("DOMContentLoaded", () => {
     // Create instance chart
-    window.chart = new AwsInstanceChart(document.getElementById("chart"));
+    let chart = window.chart = new AwsInstanceChart(document.getElementById("chart"));
 
     // Activate settings inputs
     let accessKeyIdInput = document.querySelector("input[name='accessKeyId']");
@@ -15,8 +15,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     let groupSelect = document.querySelector("select[name='groupBy']");
     let colorSelect = document.querySelector("select[name='colorBy']");
     [groupSelect, colorSelect].forEach(input => {
-        input.addEventListener("change", (e) => {
-            chart[input.name] = input.options[input.selectedIndex].text;
+        input.addEventListener("change", () => {
+            chart[input.name] = input.selectedIndex ? input.options[input.selectedIndex].value : null;
         });
     });
 
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
             </dl>
 
             <h2>Tags</h2>
-            <dl>`
+            <dl>`;
 
         // Sort tags for display
         let tagArray = Object.keys(instance.tags).map(key => [key, instance.tags[key]]);
@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 <dd>${value}</dd>`;
         });
 
-        template += `</dl>`;
+        template += "</dl>";
         return template;
     };
 
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
             <dt>Children</dt>
             <dd>${node.children.length}</dd>
-            </dl>`
+            </dl>`;
 
         return template;
     };
@@ -69,12 +69,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
     };
 
     // Load instance data
-    chart.loadInstanceData((instances) => {
+    chart.loadInstanceData(() => {
         // Populate dropdowns with grouping options
         [groupSelect, colorSelect].forEach(input => {
             chart.getGroupKeys().forEach(k => {
                 let option = document.createElement("option");
                 option.text = k;
+                option.value = k;
                 option.selected = (k == chart.settings[input.name]);
                 input.add(option);
             });

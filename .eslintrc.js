@@ -3,6 +3,10 @@ module.exports = {
         "browser": true,
         "es6": true
     },
+    "globals": {
+        "d3": true,
+        "AWS": true
+    },
     "extends": "eslint:recommended",
     "rules": {
         "indent": [

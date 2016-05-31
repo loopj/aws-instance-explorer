@@ -384,7 +384,7 @@ class AwsInstanceChart {
      * Get a list of keys for use in colorBy, groupBy, and filterBy operations
      */
     getGroupKeys() {
-        return ["instanceId", "instanceType"].concat(Array.from(this.allTagKeys).map(k => `tags.${k}`))
+        return ["instanceId", "instanceType"].concat(Array.from(this.allTagKeys).map(k => `tags.${k}`));
     }
 
     /**
@@ -417,7 +417,7 @@ class AwsInstanceChart {
 
         this.settings.colorBy = value;
         this.saveSettings();
-        this.drawNodes();
+        this.update();
     }
 
     /**
@@ -427,7 +427,7 @@ class AwsInstanceChart {
         if(value == this.settings.groupBy) return;
 
         this.settings.groupBy = value;
-        this.update();
         this.saveSettings();
+        this.update();
     }
 }
