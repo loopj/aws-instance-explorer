@@ -82,7 +82,7 @@ select {
 }
 
 #settings {
-  flex: 1;
+  flex: 2;
   border-bottom: 1px solid #ddddde;
   padding: 1rem;
 }
