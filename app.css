@@ -42,12 +42,22 @@ dd {
   text-align: right;
 }
 
-input[type=text], input[type=password] {
+input[type=text], input[type=password], select {
   display: block;
   width: 100%;
   font-size: 1rem;
   line-height: 1.8rem;
-  padding: 2px 5px;
+  padding: 3px 5px;
+  border: 1px solid #ddd;
+  border-radius: 0;
+  background: white;
+  margin-bottom: 1px;
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 #page {
@@ -68,6 +78,7 @@ input[type=text], input[type=password] {
   display: flex;
   flex-direction: column;
   border-left: 1px solid #ddddde;
+  min-width: 300px;
 }
 
 #settings {

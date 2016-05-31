@@ -3,18 +3,22 @@ document.addEventListener("DOMContentLoaded", function(event) {
     window.chart = new AwsInstanceChart(document.getElementById("chart"));
 
     // Activate settings inputs
-    let settingsInputs = document.querySelectorAll("input[name='accessKeyId'], input[name='secretAccessKey'], input[name='colorBy'], input[name='groupBy']");
-    for(let i = 0; i < settingsInputs.length; i++) {
-        let input = settingsInputs[i];
-
-        // Pre-fill inputs with stored data (if any)
+    let accessKeyIdInput = document.querySelector("input[name='accessKeyId']");
+    let secretAccessKeyInput = document.querySelector("input[name='secretAccessKey']");
+    [accessKeyIdInput, secretAccessKeyInput].forEach(input => {
         input.value = chart.settings[input.name];
-
-        // Update chart when input contents change
-        input.addEventListener("blur", (event) => {
+        input.addEventListener("blur", () => {
             chart[input.name] = input.value;
         });
-    }
+    });
+
+    let groupSelect = document.querySelector("select[name='groupBy']");
+    let colorSelect = document.querySelector("select[name='colorBy']");
+    [groupSelect, colorSelect].forEach(input => {
+        input.addEventListener("change", (e) => {
+            chart[input.name] = input.options[input.selectedIndex].text;
+        });
+    });
 
     // Template function for instance nodes
     let instanceTemplate = (instance) => {
@@ -31,11 +35,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
             <h2>Tags</h2>
             <dl>`
 
-        for(var tag in instance.tags) {
+        // Sort tags for display
+        let tagArray = Object.keys(instance.tags).map(key => [key, instance.tags[key]]);
+        tagArray.sort((a, b) => a[0].localeCompare(b[0])).forEach(([tag, value]) => {
             template += `
                 <dt>${tag}</dt>
-                <dd>${instance.tags[tag]}</dd>`;
-        }
+                <dd>${value}</dd>`;
+        });
 
         template += `</dl>`;
         return template;
@@ -58,13 +64,23 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     // Update info pane based on mouseover
     chart.handleMouseOver = (node) => {
-        if(node.nodeType == "instance") {
-            document.getElementById("instance-info").innerHTML = instanceTemplate(node);
-        } else if(node.nodeType == "group") {
-            document.getElementById("instance-info").innerHTML = groupTemplate(node);
-        }
+        var template = node.nodeType == "instance" ? instanceTemplate : groupTemplate;
+        document.getElementById("instance-info").innerHTML = template(node);
     };
 
     // Load instance data
-    chart.loadInstanceData();
+    chart.loadInstanceData((instances) => {
+        // Populate dropdowns with grouping options
+        [groupSelect, colorSelect].forEach(input => {
+            chart.getGroupKeys().forEach(k => {
+                let option = document.createElement("option");
+                option.text = k;
+                option.selected = (k == chart.settings[input.name]);
+                input.add(option);
+            });
+        });
+
+        // Start with the root node selected
+        chart.handleMouseOver(chart.rootNode);
+    });
 });
