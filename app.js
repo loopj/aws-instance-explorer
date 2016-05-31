@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     window.chart = new AwsInstanceChart(document.getElementById("chart"));
 
     // Activate settings inputs
-    var settingsInputs = document.querySelectorAll("input[name='accessKeyId'], input[name='secretAccessKey'], input[name='colorBy'], input[name='groupBy']");
+    let settingsInputs = document.querySelectorAll("input[name='accessKeyId'], input[name='secretAccessKey'], input[name='colorBy'], input[name='groupBy']");
     for(let i = 0; i < settingsInputs.length; i++) {
         let input = settingsInputs[i];
 
@@ -19,22 +19,22 @@ document.addEventListener("DOMContentLoaded", function(event) {
     // Template function for instance nodes
     let instanceTemplate = (instance) => {
         var template = `
-        <h2>Instance info</h2>
-        <dl>
-        <dt>Instance ID</dt>
-        <dd>${instance.instanceId}</dd>
+            <h2>Instance info</h2>
+            <dl>
+            <dt>Instance ID</dt>
+            <dd>${instance.instanceId}</dd>
 
-        <dt>Instance type</dt>
-        <dd>${instance.instanceType}</dd>
-        </dl>
+            <dt>Instance type</dt>
+            <dd>${instance.instanceType}</dd>
+            </dl>
 
-        <h2>Tags</h2>
-        <dl>`
+            <h2>Tags</h2>
+            <dl>`
 
         for(var tag in instance.tags) {
             template += `
-            <dt>${tag}</dt>
-            <dd>${instance.tags[tag]}</dd>`;
+                <dt>${tag}</dt>
+                <dd>${instance.tags[tag]}</dd>`;
         }
 
         template += `</dl>`;
@@ -44,14 +44,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
     // Template function for group nodes
     let groupTemplate = (node) => {
         var template = `
-        <h2>Group Info</h2>
-        <dl>
-        <dt>Group Name</dt>
-        <dd>${node.id}</dd>
+            <h2>Group Info</h2>
+            <dl>
+            <dt>Group Name</dt>
+            <dd>${node.id}</dd>
 
-        <dt>Children</dt>
-        <dd>${node.children.length}</dd>
-        </dl>`
+            <dt>Children</dt>
+            <dd>${node.children.length}</dd>
+            </dl>`
 
         return template;
     };
