@@ -69,7 +69,9 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // Load instance data
-    chart.loadInstanceData(() => {
+    chart.loadInstanceData((err) => {
+        if(err) return console.error(err);
+
         // Populate dropdowns with grouping options
         [groupSelect, colorSelect].forEach(input => {
             chart.getGroupKeys().forEach(k => {
